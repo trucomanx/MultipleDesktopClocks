@@ -22,6 +22,15 @@ To start, use the command below:
 ```bash
 multiple-desktop-clocks
 ```
+
+### Adding to Linux Init
+
+To add the program to the Linux init session, execute:
+
+```bash
+multiple-desktop-clocks --autostart
+```
+
 ## 2. More information
 
 If you want more information go to [doc](https://github.com/trucomanx/MultipleDesktopClocks/blob/main/doc) directory
