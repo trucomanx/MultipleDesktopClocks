@@ -1,30 +1,30 @@
-# {PROGRAM_NAME}
+# multiple-desktop-clocks
 
-{SUMMARY}
+Display multiple time zones as always-on-top desktop clocks.
 
-![logo](https://raw.githubusercontent.com/trucomanx/{REPOSITORY_NAME}/main/screenshot.png)
+![logo](https://raw.githubusercontent.com/trucomanx/MultipleDesktopClocks/main/screenshot.png)
 
 ## 1. Installing
 
-To install the package from [PyPI](https://pypi.org/project/{PROGRAM_NAME}/), follow the instructions below:
+To install the package from [PyPI](https://pypi.org/project/multiple-desktop-clocks/), follow the instructions below:
 
 
 ```bash
-pip install --upgrade {PROGRAM_NAME}
+pip install --upgrade multiple-desktop-clocks
 ```
 
-Execute `which {PROGRAM_NAME}` to see where it was installed, probably in `/home/USERNAME/.local/bin/{PROGRAM_NAME}`.
+Execute `which multiple-desktop-clocks` to see where it was installed, probably in `/home/USERNAME/.local/bin/multiple-desktop-clocks`.
 
 ### Using
 
 To start, use the command below:
 
 ```bash
-{PROGRAM_NAME}
+multiple-desktop-clocks
 ```
 ## 2. More information
 
-If you want more information go to [doc](https://github.com/trucomanx/{REPOSITORY_NAME}/blob/main/doc) directory.
+If you want more information go to [doc](https://github.com/trucomanx/MultipleDesktopClocks/blob/main/doc) directory.
 
 ## 3. Buy me a coffee
 
