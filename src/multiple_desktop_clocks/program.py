@@ -1,4 +1,4 @@
-import sys, os, json
+import sys, os, json, signal
 from PyQt5.QtCore import Qt, QTimer, QPoint, QRectF
 from PyQt5.QtWidgets import (QApplication, QLabel, QWidget, QSystemTrayIcon,
                              QMenu, QInputDialog)
@@ -6,24 +6,12 @@ from PyQt5.QtGui import QFont, QPainterPath, QRegion, QIcon, QFontMetrics
 import pytz
 from datetime import datetime
 
-CONFIG_FILE = os.path.expanduser("~/.sticky_clock.json")
+import multiple_desktop_clocks.about as about
+from multiple_desktop_clocks.modules.configure import load_config, save_config
+from multiple_desktop_clocks.modules.wabout  import show_about_window
 
-# ======== Funções para salvar/carregar ========
+CONFIG_PATH = os.path.join(os.path.expanduser("~"),".config",about.__package__,"config.json")
 
-def load_config():
-    if os.path.exists(CONFIG_FILE):
-        try:
-            with open(CONFIG_FILE, "r") as f:
-                data = json.load(f)
-            return data.get("timezones", [])
-        except:
-            return []
-    return []
-
-def save_config(timezones):
-    data = {"timezones": timezones}
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(data, f, indent=4)
 
 # ======== Classe da janela do relógio ========
 
@@ -103,17 +91,30 @@ class ClockIndicator(QSystemTrayIcon):
         self.clocks = {}  # timezone -> StickyClock
 
         # Carregar fusos do JSON
-        for tz in load_config():
+        for tz in load_config(CONFIG_PATH):
             self.add_clock(tz)
 
         menu = QMenu(parent)
-        add_action = menu.addAction("Adicionar Fuso Horário")
+        
+        # Add
+        add_action = menu.addAction("➕ Add time zone")
         add_action.triggered.connect(self.add_timezone)
-        remove_action = menu.addAction("Remover Fuso Horário")
+        
+        # Remove
+        remove_action = menu.addAction("➖ Remove time zone")
         remove_action.triggered.connect(self.remove_timezone)
+        
+        #
         menu.addSeparator()
-        exit_action = menu.addAction("Sair")
+        
+        # About
+        about_action = menu.addAction("ℹ️ About")
+        about_action.triggered.connect(self.show_about)
+        
+        # Exit
+        exit_action = menu.addAction("❌ Exit")
         exit_action.triggered.connect(self.exit_app)
+        
         self.setContextMenu(menu)
 
         self.show()
@@ -124,12 +125,12 @@ class ClockIndicator(QSystemTrayIcon):
         clock = StickyClock(timezone)
         clock.show()
         self.clocks[timezone] = clock
-        save_config(list(self.clocks.keys()))
+        save_config(CONFIG_PATH,list(self.clocks.keys()))
 
     def add_timezone(self):
         tz_list = pytz.all_timezones
-        tz, ok = QInputDialog.getItem(None, "Adicionar Fuso Horário",
-                                      "Escolha um timezone:", tz_list, 0, False)
+        tz, ok = QInputDialog.getItem(None, "Add time zone",
+                                      "Choose a timezone:", tz_list, 0, False)
         if ok and tz:
             self.add_clock(tz)
 
@@ -137,26 +138,73 @@ class ClockIndicator(QSystemTrayIcon):
         if not self.clocks:
             return
         tz_list = list(self.clocks.keys())
-        tz, ok = QInputDialog.getItem(None, "Remover Fuso Horário",
-                                      "Escolha um timezone para remover:", tz_list, 0, False)
+        tz, ok = QInputDialog.getItem(None, "Remove time zone",
+                                      "Choose a timezone to remove:", tz_list, 0, False)
         if ok and tz:
             self.clocks[tz].close()
             del self.clocks[tz]
-            save_config(list(self.clocks.keys()))
+            save_config(CONFIG_PATH,list(self.clocks.keys()))
 
+    def show_about(self):
+        data = {
+            "version": about.__version__,
+            "package": about.__package__,
+            "program_name": about.__program_name__,
+            "author": about.__author__,
+            "email": about.__email__,
+            "description": about.__description__,
+            "url_source": about.__url_source__,
+            "url_doc": about.__url_doc__,
+            "url_funding": about.__url_funding__,
+            "url_bugs": about.__url_bugs__
+        }
+        
+        base_dir_path = os.path.dirname(os.path.abspath(__file__))
+        logo_path = os.path.join(base_dir_path, 'icons', 'logo.png')
+        
+        show_about_window(data, logo_path)
+
+
+    
     def exit_app(self):
         for clock in self.clocks.values():
             clock.close()
         QApplication.quit()
 
-# ======== Main ========
-
-if __name__ == "__main__":
+def main():
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    
+    
+    create_desktop_directory()    
+    create_desktop_menu()
+    create_desktop_file('~/.local/share/applications')
+    
+    for n in range(len(sys.argv)):
+        if sys.argv[n] == "--autostart":
+            create_desktop_directory(overwrite = True)
+            create_desktop_menu(overwrite = True)
+            create_desktop_file('~/.config/autostart', overwrite=True)
+            return
+        if sys.argv[n] == "--applications":
+            create_desktop_directory(overwrite = True)
+            create_desktop_menu(overwrite = True)
+            create_desktop_file('~/.local/share/applications', overwrite=True)
+            return
+    
+    
     app = QApplication(sys.argv)
+    app.setApplicationName(about.__package__) # xprop WM_CLASS # *.desktop -> StartupWMClass  
     app.setQuitOnLastWindowClosed(False)
 
-    icon = QIcon.fromTheme("preferences-system-time")
+    # Get base directory for icons
+    base_dir_path = os.path.dirname(os.path.abspath(__file__))
+    icon_path = os.path.join(base_dir_path, 'icons', 'logo.png')
+    
+    icon = QIcon(icon_path)
     tray = ClockIndicator(icon)
 
     sys.exit(app.exec_())
+    
+if __name__ == "__main__":
+    main()
 
