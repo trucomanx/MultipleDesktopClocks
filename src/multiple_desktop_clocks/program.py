@@ -20,23 +20,24 @@ class StickyClock(QWidget):
     def __init__(self, timezone):
         super().__init__()
         self.timezone = timezone
-
+        
         self.setWindowFlags(
             Qt.FramelessWindowHint |
-            Qt.WindowStaysOnTopHint |
             Qt.Tool
         )
+        
         self.setAttribute(Qt.WA_TranslucentBackground)
 
         self.HEIGHT = 80
-        self.FONTSIZE = 28
+        self.FONTSIZE = 24
+        self.COLOR = "white"
 
         self.RADIUS = 20
         self.resize(250, self.HEIGHT)
         self.move(200, 200)
 
         self.label = QLabel(self)
-        self.label.setStyleSheet("color: white;")
+        self.label.setStyleSheet(f"color: {self.COLOR};")
         font = QFont('DejaVu Sans Mono', self.FONTSIZE, QFont.Bold)
         self.label.setFont(font)
         self.label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
@@ -82,6 +83,8 @@ class StickyClock(QWidget):
 
     def mouseReleaseEvent(self, event):
         self.old_pos = None
+        if hasattr(self, "tray_ref"):   # se o relógio conhece o tray
+            self.tray_ref.save_all_positions()
 
 # ======== Tray com múltiplos relógios ========
 
@@ -92,8 +95,12 @@ class ClockIndicator(QSystemTrayIcon):
         self.clocks = {}  # timezone -> StickyClock
 
         # Carregar fusos do JSON
-        for tz in load_config(CONFIG_PATH):
-            self.add_clock(tz)
+        self.config = load_config(CONFIG_PATH)
+        for tz, pos in self.config.items():
+            x = pos.get("x", 200)
+            y = pos.get("y", 200)
+            self.add_clock(tz, x, y)
+
 
         menu = QMenu(parent)
         
@@ -120,13 +127,22 @@ class ClockIndicator(QSystemTrayIcon):
 
         self.show()
 
-    def add_clock(self, timezone):
+    def add_clock(self, timezone, x=200, y=200):
         if timezone in self.clocks:
             return
         clock = StickyClock(timezone)
+        clock.move(x, y)
+        clock.tray_ref = self   # <<< adiciona referência ao tray
         clock.show()
         self.clocks[timezone] = clock
-        save_config(CONFIG_PATH,list(self.clocks.keys()))
+        self.save_all_positions()
+
+    def save_all_positions(self):
+        data = {}
+        for tz, clock in self.clocks.items():
+            data[tz] = {"x": clock.x(), "y": clock.y()}
+        save_config(CONFIG_PATH, data)
+
 
     def add_timezone(self):
         tz_list = pytz.all_timezones
