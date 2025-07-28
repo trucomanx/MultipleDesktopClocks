@@ -1,2 +1,4 @@
 /src/multiple_desktop_clocks/__pycache__
 /src/multiple_desktop_clocks/modules/__pycache__
+/src/dist
+/src/multiple_desktop_clocks.egg-info/

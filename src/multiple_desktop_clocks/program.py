@@ -9,6 +9,7 @@ from datetime import datetime
 import multiple_desktop_clocks.about as about
 from multiple_desktop_clocks.modules.configure import load_config, save_config
 from multiple_desktop_clocks.modules.wabout  import show_about_window
+from multiple_desktop_clocks.desktop import create_desktop_file, create_desktop_directory, create_desktop_menu
 
 CONFIG_PATH = os.path.join(os.path.expanduser("~"),".config",about.__package__,"config.json")
 
