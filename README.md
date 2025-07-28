@@ -1,6 +1,6 @@
 # multiple-desktop-clocks
 
-Display multiple time zones as always-on-top desktop clocks.
+Display multiple time zones as desktop clocks.
 
 ![logo](screenshot.png)
 
