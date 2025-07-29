@@ -1,6 +1,6 @@
 # multiple-desktop-clocks
 
-Display multiple time zones as always-on-top desktop clocks.
+Display multiple time zones as desktop clocks.
 
 ![logo](https://raw.githubusercontent.com/trucomanx/MultipleDesktopClocks/main/screenshot.png)
 
